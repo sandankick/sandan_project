@@ -44,8 +44,8 @@ python app.py
 - [Dash](https://dash.plot.ly/) - Main server and interactive components
 - [Plotly Python](https://plot.ly/python/) - Used to create the interactive plots
 
-## 실행
+## 스크린샷
+![KakaoTalk_20220902_160756362](https://user-images.githubusercontent.com/103256030/188083988-0cdbf2c4-1944-4e07-8551-df751d57c5a7.png)
 
-The following are screenshots for the app in this repo:
 
 
