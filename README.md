@@ -2,8 +2,8 @@
 
 이 파일은 plotly에서 개발한 python 대화형 프레임워크인 dash을 사용해 작성되었습니다. [Plotly](https://plot.ly/).
 
-## Getting Started
-
+## 파일 실행방법
+----------------
 ### 파일구조
 
 ```
@@ -24,18 +24,28 @@ apps
 
 ```
 
+### python 파일 실행방법 
 
-Run the app
-
+console창에 다음 명령어 입력
 ```
 
 python app.py
 
 ```
 
+
+### python 파일 실행방법 
+
+jr 
+```
+
+app.ipynb
+
+```
+
 ## About the app
 
-This Dash app displays oil production in western New York. There are filters at the top of the app to update the graphs below. By selecting or hovering over data in one plot will update the other plots ('cross-filtering').
+
 
 ## Built With
 
