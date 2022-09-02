@@ -25,10 +25,10 @@ apps
 ```
 
 ### 파일 실행방법 
-
-app.py또는 app.ipynb코드를 실행
 ----------------
-console창에 다음 명령어 입력
+app.py or app.ipynb실행
+
+1. console창에 다음 명령어 입력
 ```
 
 python app.py
@@ -36,7 +36,7 @@ python app.py
 ```
 
 
-또는 jupyter notebook과 같은 어플리케이션을 활용하여 app.ipynb실행
+2. 또는 jupyter notebook과 같은 어플리케이션을 활용하여 app.ipynb실행
 
 
 ## 빌드
