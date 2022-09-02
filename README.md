@@ -24,7 +24,7 @@ apps
 
 ```
 
-### python 파일 실행방법 
+### 파일 실행방법 
 
 console창에 다음 명령어 입력
 ```
@@ -36,18 +36,15 @@ python app.py
 
 ### ipynb 파일 실행방법 
 
-jupyter notebook에서 app.ipynb실행
-```
+jupyter notebook과 같은 어플리케이션을 활용하여 app.ipynb실행
 
 
-```
-
-## Built With
+## 빌드
 
 - [Dash](https://dash.plot.ly/) - Main server and interactive components
 - [Plotly Python](https://plot.ly/python/) - Used to create the interactive plots
 
-## Screenshots
+## 실행
 
 The following are screenshots for the app in this repo:
 
