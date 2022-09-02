@@ -26,7 +26,7 @@ apps
 
 ### 파일 실행방법 
 
-app.py or app.ipynb실행
+- app.py or app.ipynb실행
 
 1. console창에 다음 명령어 입력
 ```
