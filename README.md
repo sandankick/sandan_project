@@ -13,27 +13,17 @@ apps
 
 ├── 산단발차기 # app project
 │ ├── .gitignore # Backup File, Log File
-│ ├── data 
-│ │ ├── .csv(산단별 데이터 csv파일)
-│ │ ├── .geojson(산단 위치정보 geojson파일)
+│ ├── .csv(산단별 데이터 csv파일)
+│ ├── .geojson(산단 위치정보 geojson파일)
+│ ├── assets
 │ │ ├── dash-logo.png
 │ │ ├── s1.css
+│ │ ├── resizing_script.js
 │ │ ├── styles.css
-│ ├── app.py # dash application
-│ ├── Procfile # used for heroku deployment
-│ ├── requirements.txt # project dependecies
+│ ├── app.py or app.ipynb
 
 ```
 
-Clone the git repo, then install the requirements with pip
-
-```
-
-git clone https://github.com/plotly/dash-sample-apps
-cd dash-sample-apps/apps/dash-oil-and-gas
-pip install -r requirements.txt
-
-```
 
 Run the app
 
@@ -56,11 +46,4 @@ This Dash app displays oil production in western New York. There are filters at 
 
 The following are screenshots for the app in this repo:
 
-![animated1](screenshots/animated1.gif)
-
-![screenshot](screenshots/screenshot1.png)
-
-![screenshot](screenshots/screenshot2.png)
-
-![screenshot](screenshots/screenshot3.png)
 
