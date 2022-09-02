@@ -34,18 +34,13 @@ python app.py
 ```
 
 
-### python 파일 실행방법 
+### ipynb 파일 실행방법 
 
-jr 
+jupyter notebook에서 app.ipynb실행
 ```
 
-app.ipynb
 
 ```
-
-## About the app
-
-
 
 ## Built With
 
