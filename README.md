@@ -38,9 +38,7 @@ apps
 2. app.ipynb 코드를 실행시키기 어려울경우 app.py파일을 실행하기 위해 console창에 다음 명령어 입력
 
 ```
-
 python app.py
-
 
 py코드 실행시 다음과 같은 라이브러리가 준비되어야함 
 
