@@ -35,7 +35,7 @@ apps
 
 1. jupyter notebook과 같은 어플리케이션을 활용하여 app.ipynb실행
 
-2. app.py파일을 실행하기 위해 console창에 다음 명령어 입력
+2. app.ipynb 코드를 실행시키기 어려울경우 app.py파일을 실행하기 위해 console창에 다음 명령어 입력
 
 ```
 
@@ -51,6 +51,8 @@ numpy==1.20.3
 install pandas==1.3.4
 install seaborn
 ```
+
+3. 다음코드를 실행시킬시 로컬상에서 웹사이트가 실행되며 http://127.0.0.1:8050/ 주소로 들어가서 웹 구현을 확인할수 있음
 
 ### 배포
 
