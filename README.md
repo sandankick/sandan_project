@@ -4,17 +4,24 @@
 
 ## Getting Started
 
-### Running the app locally
-
-First create a virtual environment with conda or venv inside a temp folder, then activate it.
+### 파일구조
 
 ```
-virtualenv venv
+apps
 
-# Windows
-venv\Scripts\activate
-# Or Linux
-source venv/bin/activate
+├── ...
+
+├── 산단발차기 # app project
+│ ├── .gitignore # Backup File, Log File
+│ ├── data 
+│ │ ├── .csv(산단별 데이터 csv파일)
+│ │ ├── .geojson(산단 위치정보 geojson파일)
+│ │ ├── dash-logo.png
+│ │ ├── s1.css
+│ │ ├── styles.css
+│ ├── app.py # dash application
+│ ├── Procfile # used for heroku deployment
+│ ├── requirements.txt # project dependecies
 
 ```
 
