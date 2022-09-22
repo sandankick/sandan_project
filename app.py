@@ -31,7 +31,7 @@ geo_data_sandan = json.load(open('산단.geojson', encoding='utf-8'))
 colors_map = ['#0e0889', '#7f07a5', '#cb487a', '#f69740', '#f5ea27', '#9ccc0c', '#41b30c', '#0cb38c']
 
 # 산업분류 리스트 만들기
-industry_list = df['산업입주_대분류'].unique()
+industry_list = df['대분류'].unique()
 
 #산업단지 geojson 파일에서 산업단지 위경도 좌표 가져오기
 sandan_names=[]
@@ -185,21 +185,20 @@ def ExportEU_df(df, country):
     return :
     수출 여부가 '유'일때 수출 여부 항목이 유인 데이터프레임 행을 반환하고 아닐 때는 입력 데이터프레임을 그대로 반환
     '''
-
     return_df = df
 
     if 'EU' in country:
         return_df = df[df['수출 여부 (EU)']=='유']
-
+        
         if 'US' in country:
-            return_df = df[(df['수출 여부 (EU)']=='유') & (df['수출 여부 (US)']=='유')]
+            return_df = df[(df['수출 여부 (US)']=='유') & (df['수출 여부 (EU)']=='유')]
 
     elif 'US' in country:
         return_df = df[df['수출 여부 (US)']=='유']
 
     else:
-        return_df = df
-        
+        retrun_df = df
+
     return return_df
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -221,10 +220,10 @@ def sales_pie(df):
     '''
 
     #산업단지별 수출액(매출액)합 분류
-    df_temp=df[['산업단지','산업입주_대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
-    df_temp=df_temp.groupby(['산업단지','산업입주_대분류']).sum().reset_index()
+    df_temp=df[['산업단지','대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
+    df_temp=df_temp.groupby(['산업단지','대분류']).sum().reset_index()
 
-    dff_pie=df_temp.drop(['산업입주_대분류'],axis=1).groupby(['산업단지']).sum()
+    dff_pie=df_temp.drop(['대분류'],axis=1).groupby(['산업단지']).sum()
     dff_pie=dff_pie.sort_values(by=['매출액_2021'],ascending=False)[:8]
 
     title_text="전국"
@@ -274,10 +273,10 @@ def sales_pie_sandan(df_sandan):
     산업단지내 업종 별 수출액 비율을 나타낸 Plotly Express의 pie chart를 반환 
     '''
 
-    df_temp=df_sandan[['산업단지','산업입주_대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
-    df_temp=df_temp.groupby(['산업단지','산업입주_대분류']).sum().reset_index()
+    df_temp=df_sandan[['산업단지','대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
+    df_temp=df_temp.groupby(['산업단지','대분류']).sum().reset_index()
 
-    dff_pie=df_sandan.drop(['산업단지'],axis=1).groupby(['산업입주_대분류']).sum()
+    dff_pie=df_sandan.drop(['산업단지'],axis=1).groupby(['대분류']).sum()
     dff_pie=dff_pie.sort_values(by=['매출액_2021'],ascending=False)[:8]
 
     title_text=df_sandan['산업단지'].values[0]
@@ -726,14 +725,13 @@ def ChangeInExport_industry(df, sandan_name):
     graph_objects의 Figure()객체(수출액 변화 추이 그래프)
     '''
 
-    df_temp_sandan=df[['산업단지','산업입주_대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
-    df_temp_sandan=df_temp_sandan.groupby(['산업단지','산업입주_대분류']).sum().reset_index()
+    df_temp_sandan=df[['산업단지','대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
+    df_temp_sandan=df_temp_sandan.groupby(['산업단지','대분류']).sum().reset_index()
 
     #수출액(매출액)합을 기준으로 상위 5개 업종을 분류
     dff_bar = df_temp_sandan[df_temp_sandan['산업단지'] == sandan_name]
     dff_bar=dff_bar.sort_values(by=['매출액_2021'],ascending=False)
     dff_bar=dff_bar.head()
-    text = dff_bar.iloc[0,1]
 
     industry_list=[]
     value_list=[]
@@ -779,7 +777,7 @@ def ChangeInExport_industry(df, sandan_name):
                     showgrid=True),
             hovermode="x unified"
             )
-    return fig_temp, text
+    return fig_temp
 
 def ChangeInExport_sandan(df):
     '''
@@ -847,6 +845,7 @@ def ChangeInExport_sandan(df):
 #-----------------------------------------------------------------------------------------------------------------------
 #dash server지정 
 #-----------------------------------------------------------------------------------------------------------------------
+
 from dash_html_components import Br
 import flask
 from flask import Flask
@@ -860,8 +859,8 @@ application = flask.Flask(__name__)
 # dash app with flask server
 dash_app1 = Dash(__name__, server=application, url_base_pathname='/dashapp1/', 
         meta_tags=[{"name": "viewport", "content": "width=device-width"}])
-dash_app2 = Dash(__name__, server=application, url_base_pathname='/dashapp2/',
-        meta_tags=[{"name": "viewport", "content": "width=device-width"}])
+# dash_app2 = Dash(__name__, server=application, url_base_pathname='/dashapp2/',
+#         meta_tags=[{"name": "viewport", "content": "width=device-width"}])
 
 # # flask app
 @application.route('/')
@@ -869,8 +868,7 @@ def index():
     return flask.redirect(flask.url_for('/dashapp1/'))
 
 dash_app1.title = "ESG Danger Management Monitoring Service."
-dash_app2.title = "ESG Danger Management Monitoring Service. (page2)"
-# server = app.server
+# dash_app2.title = "ESG Danger Management Monitoring Service. (page2)"
 
 #-----------------------------------------------------------------------------------------------------------------------
 #웹상에 보여질 레이아웃 설정
@@ -893,19 +891,9 @@ dash_app1.layout = html.Div(
     [
         dcc.Store(id="aggregate_data"),
         html.Div(id="output-clientside"),
-
         #head 작성
         html.Div(
-
-            [   
-                html.Div(
-                    html.A(
-                        html.Button("페이지2", id="-button"),
-                        href="/dashapp2/",
-                    )
-                ),
-                    
-                #왼쪽상단 로고
+            [   #왼쪽상단 로고
                 html.Div(
                     [       
                         html.Img(
@@ -991,7 +979,7 @@ dash_app1.layout = html.Div(
                         ),
                         html.P("수출여부 : \n", className="control_label"),
                         dcc.Checklist(
-                            ['EU','US'],
+                            ['EU', 'US'],
                             [None],
                             id="eu_check",
                             className="dcc_control",
@@ -1076,6 +1064,48 @@ dash_app1.layout = html.Div(
             ],
             className="row flex-display",
         ),
+
+        #하단 산업단지 분석
+        html.Div(
+            [  
+                #산업단지 검색 input창
+                html.Div(
+                    [
+                        dcc.Input(id="search", type="text", placeholder="산업단지 검색", debounce=True, style = {'display':'inline_block','float':'left'})
+                    ]
+                ),
+                #산업단지 분석결과 텍스트
+                html.P(children = "산업단지 분석 결과 우선 지원 업종은", style = {'display':'inline_block','float':'left', 'margin':'0px 10px 0px 100px'}),
+                html.P(children = "-", id = 'input_text', style = {'display':'inline_block','float':'left', 'margin':'0px 0px 0px 0px'}),
+                html.P(children = "입니다.", style = {'display':'inline_block','float':'left', 'margin':'0px 0px 0px 0px'})
+            ],
+            className="pretty_container twelve columns",
+            id = "input_sandan_container",
+            style={'height':70, 'fontSize':'22px' }
+        ),
+        html.Div(
+            [   
+                #산업단지 시급성 맵
+                html.Div(
+                    dcc.Graph(id="individual_graph",style={"height":400}),
+                    className="pretty_container four columns",
+                ),
+                #산업단지 수출액 비율 파이 그래프
+                html.Div(
+                    dcc.Graph(id="pie_graph",figure=sales_pie(df),style={"height":400}),
+                    className="pretty_container four columns",
+
+                ),
+                #산업단지 수출액 변화추이 그래프
+                html.Div(
+                    [dcc.Graph(id="bar_graph",style={"height":400})],
+                    className="pretty_container four columns",
+                ),
+                
+
+            ],
+            className="row flex-display",
+        ),
     ],
     id="mainContainer",
     style={"display": "flex", "flex-direction": "column"},
@@ -1119,7 +1149,7 @@ def update_map(size_type, code_value, grade, eu_select):
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['산업입주_대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
 
     fig, text = entire_EDA(df_condition, grade)
     
@@ -1147,7 +1177,7 @@ def update_text(size_type, code_value, eu_select):
     '''
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['산업입주_대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
 
     data_money=int(df_condition['매출액_2021'].sum())
     data_people=df_condition['종사자수_2021'].sum()
@@ -1155,113 +1185,12 @@ def update_text(size_type, code_value, eu_select):
 
     return '{:,.0f}'.format(data_money), int(data_company), int(data_people)
 
-# --------------------------------------------------------------------------------------------------------
-
-dash_app2.layout = html.Div(
-    [
-        html.Div(
-            [   
-                #왼쪽상단 로고
-                html.Div(
-                    [       
-                        html.Img(
-                            src=dash_app2.get_asset_url("dash-logo.png"),
-                            id="plotly-image",
-                            style={
-                                "height": "60px",
-                                "width": "auto",
-                                "margin-bottom": "25px",
-                            },
-                        )
-                    ],
-                    className="one-third column",
-                ),
-                #title
-                html.Div(
-                    [
-                        html.Div(
-                            [
-                                html.H3(
-                                    "한국산업단지 ESG 대응",
-                                    style={"margin-bottom": "0px"},
-                                ),
-                                html.H5(
-                                    "Monitoring Service", style={"margin-top": "0px"}
-                                ),
-                            ]
-                        )
-                    ],
-                    className="one-half column",
-                    id="title",
-                ),
-                #빅리더 홈페이지 링크
-                html.Div(
-                    [
-                        html.A(
-                            html.Button("빅리더 AI 아카데미", id="learn-more-button"),
-                            href="https://bigleader.net/",
-                        )
-                    ],
-                    className="one-third column",
-                    id="button",
-                ),
-            ],
-            id="header",
-            className="row flex-display",
-            style={"margin-bottom": "25px"},
-        ),
-
-        #상단 산업단지 분석
-        html.Div(
-            [  
-                #산업단지 검색 input창
-                html.Div(
-                    [
-                        dcc.Input(id="search", type="text", placeholder="산업단지 검색", debounce=True, style = {'display':'inline_block','float':'left'})
-                    ]
-                ),
-                #산업단지 분석결과 텍스트
-                html.P(children = "산업단지 분석 결과 우선 지원 업종은", style = {'display':'inline_block','float':'left', 'margin':'0px 10px 0px 100px'}),
-                html.P(children = "-", id = 'input_text2', style = {'display':'inline_block','float':'left', 'margin':'0px 0px 0px 0px'}),
-                html.P(children = "입니다.", style = {'display':'inline_block','float':'left', 'margin':'0px 0px 0px 0px'})
-            ],
-            className="pretty_container twelve columns",
-            id = "input_sandan_container",
-            style={'height':70, 'fontSize':'22px' }
-        ),
-        html.Div(
-            [   
-                #산업단지 시급성 맵
-                html.Div(
-                    dcc.Graph(id="individual_graph2",style={"height":400}),
-                    className="pretty_container four columns",
-                ),
-                #산업단지 수출액 비율 파이 그래프
-                html.Div(
-                    dcc.Graph(id="pie_graph2",figure=sales_pie(df),style={"height":400}),
-                    className="pretty_container four columns",
-
-                ),
-                #산업단지 수출액 변화추이 그래프
-                html.Div(
-                    [dcc.Graph(id="bar_graph2",style={"height":400})],
-                    className="pretty_container four columns",
-                ),
-                
-
-            ],
-            className="row flex-display",
-        ),
-    ],
-    id="mainContainer",
-    style={"display": "flex", "flex-direction": "column"},
-)
-
-
-@dash_app2.callback(
-    Output("individual_graph2", "figure"),
-    Input('search', 'value'))
-def sandan_search(search):
+@dash_app1.callback(
+    Output("individual_graph", "figure"),
+    Input('search', 'value'),
+    Input('well_status_selector', 'value'),
+    Input('well_statuses','value'))
+def sandan_search(search, size_type, code_value):
     '''
     Description :
     산업단지 시급성 분포 맵 콜백함수
@@ -1331,8 +1260,8 @@ def sandan_search(search):
     return fig_sandan
 
 
-@dash_app2.callback(
-    Output('pie_graph2', 'figure'),
+@dash_app1.callback(
+    Output('pie_graph', 'figure'),
     Input('search', 'value'))
 def pie(search):
     '''
@@ -1352,9 +1281,9 @@ def pie(search):
     else:
         return sales_pie(df)
 
-@dash_app2.callback(
-    Output('bar_graph2', 'figure'),
-    Output('input_text2', 'children'),
+@dash_app1.callback(
+    Output('bar_graph', 'figure'),
+    Output('input_text', 'children'),
     Input('search', 'value'))
 def ChangeInExport(search):
     '''
@@ -1372,20 +1301,18 @@ def ChangeInExport(search):
     df_condition = Sandan_df(df, sandan_name)
     
     if is_search:
-        fig_temp, text_upjong= ChangeInExport_industry(df_condition, sandan_name)
-        text = text_upjong
+        fig_temp = ChangeInExport_industry(df_condition, sandan_name)
+        text = sandan_name
         return fig_temp, text  
     else:
         fig_temp = ChangeInExport_sandan(df_condition)
         text = '-'
-        return fig_temp, text  
-
-
+        return fig_temp, text     
+        
 #-----------------------------------------------------------------------------------------------------------------    
 #서버 실행
 #-----------------------------------------------------------------------------------------------------------------    
 
 if __name__ == "__main__":
-    # application.debug = True
-    application.run(host='0.0.0.0', port = "5000")
-
+    application.debug = True
+    application.run(host = "0.0.0.0", port ="5000")

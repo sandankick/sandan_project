@@ -107,11 +107,11 @@ body {
   flex-direction: column;
 }
 
-#wells {
+#export {
   flex: 1;
 }
 
-#gas {
+#company {
   flex: 1;
 }
 
@@ -119,7 +119,7 @@ body {
   align-items: center;
 }
 
-#oil {
+#employee {
   flex: 1;
 }
 
