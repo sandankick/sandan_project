@@ -45,7 +45,7 @@ for sandan in geo_data_sandan.get('features'):
     sandan_lons.append(sandan.get('geometry')['coordinates'][0][0][0])
 df_sandan_location = pd.DataFrame({'name':sandan_names,'latitude':sandan_lats, 'longitude':sandan_lons})
 
-#시급성 기준으로 산업단지를 데이터프레임을 5등분해 순차적으로 등급 지정
+#지원우선순위 기준으로 산업단지를 데이터프레임을 5등분해 순차적으로 등급 지정
 df_grade = df[['산업단지', 'Score']].groupby('산업단지').sum()
 df_grade = pd.DataFrame({'산업단지': list(df_grade.index), 'Score':df_grade['Score']})
 df_grade = df_grade.sort_values(by=['Score'], axis=0, ascending=False)
@@ -332,7 +332,7 @@ def entire_EDA(input_df, grade):
     #데이터 프레임 내 기업수
     dict_companies_num=dict(input_df['산업단지'].value_counts())
 
-    #산업단지 별 시급성, 매출액합을 그룹화
+    #산업단지 별 지원우선순위, 매출액합을 그룹화
     df_gradegroup = input_df[['산업단지','Score']].groupby(['산업단지'])['Score'].sum().reset_index()
     df_salesgroup = input_df[['산업단지', '매출액_2021']].groupby(['산업단지'])['매출액_2021'].sum().reset_index()
     df_grade = pd.merge(df_gradegroup, df_salesgroup, how ='left', on ='산업단지')
@@ -370,7 +370,7 @@ def entire_EDA(input_df, grade):
     x =df_grade_choose.산업단지
 
     #산업단지 추천결과 문자열
-    grade_text = '등급 산업단지는 {}외 {}건 입니다'.format(x.values[-1], len(df_grade_choose)-1)
+    grade_text = '순위 산업단지는 {}외 {}건 입니다'.format(x.values[-1], len(df_grade_choose)-1)
     
     #서브플롯 2개생성(산업단지별 매출액 bar그래프, 산업단지별 기업갯수 그래프)
     fig = make_subplots(rows=1, cols=2, specs=[[{}, {}]], shared_xaxes=True,
@@ -492,7 +492,7 @@ def Main_graph(input_df):
     #데이터 프레임 내 기업수
     dict_companies_num=dict(input_df['산업단지'].value_counts())
 
-    #산업단지 별 시급성, 매출액합을 그룹화 
+    #산업단지 별 지원우선순위, 매출액합을 그룹화 
     df_gradegroup = input_df[['산업단지','Score']].groupby(['산업단지'])['Score'].sum().reset_index()
     df_salesgroup = input_df[['산업단지','매출액_2019','매출액_2020', '매출액_2021']].groupby(['산업단지'])['매출액_2019','매출액_2020','매출액_2021'].sum().reset_index()
     df_employeegroup = input_df[['산업단지','종사자수_2019','종사자수_2020', '종사자수_2021']].groupby(['산업단지'])['종사자수_2019','종사자수_2020', '종사자수_2021'].sum().reset_index()
@@ -537,7 +537,7 @@ def Main_graph(input_df):
                 color='rgba(50, 171, 96, 1.0)',
                 width=1),
         ),
-        name='단지별 시급성 (log 분석)',
+        name='단지별 지원우선순위 (log 분석)',
         orientation='h',
     ), 1, 1)
 
@@ -575,7 +575,7 @@ def Main_graph(input_df):
             size=18,
             color="#777777"),
         title=dict(
-        text='전국 산업단지 시급도,수출액,기업수 상대분석',
+        text='전국 산업단지 지원우선순위(시급도), 수출액, 기업수 상대분석',
         x=0.05,
         y=0.98,
         font=dict(
@@ -650,16 +650,16 @@ def Main_map(input_df):
     '''
     Description :
     데이터 프레임을 input값으로 받아,
-    전국 산업단지 시급도, 수출액, 기업수 상대분석 그래프 생성
+    전국 산업단지 지원우선순위, 수출액, 기업수 상대분석 그래프 생성
 
     Parameters :  
     input_df = 분류할 데이터프레임. ['산업단지', '매출액_2021', '매출액_2020','매출액_2019','Score']칼럼을 포함 
     return : 
-    Plotly Express의 scatter_mapbox(전국산업단지 시급도 분포도)
+    Plotly Express의 scatter_mapbox(전국산업단지 지원우선순위 분포도)
     '''
 
 
-    #산업단지를 시급성 기준으로 정렬 후 5등분하여 1~5등급으로 등급 분류
+    #산업단지를 지원우선순위 기준으로 정렬 후 5등분하여 1~5등급으로 순위 분류
     df_grade = input_df[['산업단지', 'Score']].groupby('산업단지').sum()
     df_grade = pd.DataFrame({'산업단지': list(df_grade.index), 'Score':df_grade['Score']})
     df_grade = df_grade.sort_values(by=['Score'], axis=0, ascending=False)
@@ -705,7 +705,7 @@ def Main_map(input_df):
                                 orientation='h'
                                 ),
                             title=dict(
-                                text='< 시급성 분포 Map >',
+                                text='< 지원우선순위 분포 Map >',
                                 x=0.2,
                                 y=0.08,
                                 font_size=30
@@ -1113,13 +1113,21 @@ content1 = html.Div(
                             #산업단지 분석결과 텍스트
                             html.Div(
                                 [
-                                    html.P("선택하신 조건으로 AI 분석결과", style = {'display':'inline_block','float':'left', 'margin':'5px 10px 0px 30px'}),
-                                    dcc.Dropdown([1, 2, 3, 4, 5, '전체'], 1, id='dropdown_grade', clearable=False, style = {'display':'inline_block','float':'left', 'width': '120px', 'height':45}),
-                                    html.P(children = "등급 산업단지는 -입니다.", id = 'grade_text', style = {'display':'inline_block','float':'left', 'margin':'5px 0px 0px 0px'})
+                                    html.P("선택하신 조건으로 AI 분석결과 지원", style = {'display':'inline_block','float':'left', 'margin':'20px 10px 0px 30px'}),
+                                    dcc.Dropdown([
+                                        {"label": html.Div(['1'], style={'font-size': 35, 'margin':'20px 0px 0px 0px'}), "value":1},
+                                        {"label": html.Div(['2'], style={'font-size': 35, 'margin':'20px 0px 0px 0px'}), "value":2},
+                                        {"label": html.Div(['3'], style={'font-size': 35, 'margin':'20px 0px 0px 0px'}), "value":3},
+                                        {"label": html.Div(['4'], style={'font-size': 35, 'margin':'20px 0px 0px 0px'}), "value":4},
+                                        {"label": html.Div(['5'], style={'font-size': 35, 'margin':'20px 0px 0px 0px'}), "value":5},
+                                        {"label": html.Div(['전체'], style={'font-size': 35, 'margin':'20px 0px 0px 0px'}), "value":'전체'},
+                                        ],
+                                     1, id='dropdown_grade', clearable=False,  optionHeight=55, style = {'display':'inline_block','float':'left', 'width': '150px', 'height':60, 'font-size':'35px', 'align-items': 'center', 'justify-content': 'center', 'margin':'5px 0px 0px 0px'}),
+                                    html.P(children = "순위 산업단지는 -입니다.", id = 'grade_text', style = {'display':'inline_block','float':'left', 'margin':'20px 0px 0px 0px'})
                                 ],
                                 id="Recommended_text",
                                 className="pretty_container",
-                                style={'color':'#777777','width': '100%', 'height':100, 'font-size':'30px'}
+                                style={'color':'#777777','width': '100%', 'height':120, 'font-size':'30px'}
                             ),
                             #매출액, 기업수 그래프
                             html.Div(
@@ -1142,10 +1150,10 @@ dash_app1.layout = html.Div(
     [   
                 html.Div(
                     [html.A(
-                        html.Button("산단별 시급도", id="-button1", style={'width': '250px', 'height': '80px', 'font-size': '30px', 'float':'left', 'margin-left': '20px', 'color':'#3ba706', 'border-color':'#3ba706'}),
+                        html.Button("산단별 보기", id="-button1", style={'width': '250px', 'height': '80px', 'font-size': '30px', 'float':'left', 'margin-left': '20px', 'color':'#3ba706', 'border-color':'#3ba706'}),
                         href="/dashapp1/",style={'margin-top': ''}),
                     html.A(
-                        html.Button("기업별 시급도", id="-button2", n_clicks=0, style={'width': '250px', 'height': '80px', 'font-size': '30px', 'float':'left', 'margin-left': '40px'}),
+                        html.Button("기업별 보기", id="-button2", n_clicks=0, style={'width': '250px', 'height': '80px', 'font-size': '30px', 'float':'left', 'margin-left': '40px'}),
                         href="/dashapp2/",style={'margin-top': ''}),
 
                     html.A(
@@ -1230,7 +1238,7 @@ def update_map(size_type, code_value, grade, eu_select):
     if code_value != []:
         fig, text = entire_EDA(df_condition, grade)
     else:
-        text = "등급 산업단지는 -------- 입니다."
+        text = "순위 산업단지는 -------- 입니다."
         fig = dict({
             "data": [{"type": "bar",
                     "x": [],
@@ -1331,7 +1339,7 @@ def toggle_left(n, is_open):
 #                         opacity=0.4,
 #                         )
                         
-# text = '전국 기업 시급성 분포'
+# text = '전국 기업 지원우선순위 분포'
 
 # fig_sandan.update_layout(
 #                         title=dict(
@@ -1401,10 +1409,10 @@ dash_app2.layout = html.Div(
     [
         html.Div(
             [html.A(
-                html.Button("산단별 시급도", id="-button1", style={'width': '250px', 'height': '80px', 'font-size': '30px', 'float':'left', 'margin-left': '20px'}),
+                html.Button("산단별 보기", id="-button1", style={'width': '250px', 'height': '80px', 'font-size': '30px', 'float':'left', 'margin-left': '20px'}),
                 href="/dashapp1/",style={'margin-top': ''}),
             html.A(
-                html.Button("기업별 시급도", id="-button2", n_clicks=0, style={'width': '250px', 'height': '80px', 'font-size': '30px', 'float':'left', 'margin-left': '40px', 'color':'#3ba706', 'border-color':'#3ba706'}),
+                html.Button("기업별 보기", id="-button2", n_clicks=0, style={'width': '250px', 'height': '80px', 'font-size': '30px', 'float':'left', 'margin-left': '40px', 'color':'#3ba706', 'border-color':'#3ba706'}),
                 href="/dashapp2/",style={'margin-top': ''}),
 
             html.A(
@@ -1433,7 +1441,7 @@ dash_app2.layout = html.Div(
                                             ]
                                         ),
                                         #산업단지 분석결과 텍스트
-                                        html.P(children = "검색된 1등급 기업 갯수는 총 ", style = {'display':'inline_block','float':'left', 'margin':'7px 10px 0px 100px'}),
+                                        html.P(children = "검색된 지원우선 1순위 기업 갯수는 총 ", style = {'display':'inline_block','float':'left', 'margin':'7px 10px 0px 100px'}),
                                         html.P(children = "-", id = 'company_grade1_text', style = {'display':'inline_block','float':'left', 'margin':'7px 0px 0px 0px'}),
                                         html.P(children = "개 입니다.", style = {'display':'inline_block','float':'left', 'margin':'7px 0px 0px 0px'})
                                     ],
@@ -1444,7 +1452,7 @@ dash_app2.layout = html.Div(
 
 
                                 html.Div(
-                                    #기업 시급성 맵
+                                    #기업 지원우선순위 맵
                                     html.Div(
                                         dcc.Graph(id="individual_graph3",style={"height":1500}),
                                         className="pretty_container columns",
@@ -1481,7 +1489,7 @@ dash_app2.layout = html.Div(
                                         
                                         html.Div(
                                             [   
-                                                #산업단지 시급성 막대 그래프
+                                                #산업단지 지원우선순위 막대 그래프
                                                 html.Div(
                                                     dcc.Graph(id="pie_graph3",style={"height":700}),
                                                     className="pretty_container columns",
@@ -1657,7 +1665,7 @@ def ChangeInExport(search, size_type, code_value, eu_select):
 def sandan_search(search, size_type, code_value, eu_select, button1, button2, button3, button4, button5, button6, button7, button8, button9, button10):
     '''
     Description :
-    산업단지 시급성 분포 맵 콜백함수
+    산업단지 지원우선순위 분포 맵 콜백함수
 
     Parameters :
     search = 검색창에 입력한 문자열
@@ -1665,7 +1673,7 @@ def sandan_search(search, size_type, code_value, eu_select, button1, button2, bu
     code_value = 산업단지 업종명('')
     
     return :
-    Plotly Express의 scatter_mapbox(전국 산업단지 시급성 분포 맵)을 반환,
+    Plotly Express의 scatter_mapbox(전국 산업단지 지원우선순위 분포 맵)을 반환,
     특정 산업단지 검색결과가 존재할 시 Plotly Express의 choropleth_mapbox(특정 산업단지 확대 맵)을 반환
     '''
     if code_value == []:
@@ -1706,7 +1714,7 @@ def sandan_search(search, size_type, code_value, eu_select, button1, button2, bu
                         mapbox_style="carto-positron",
                         zoom=zoom_size, center = {"lat": lat, "lon": lon},
                         opacity=0.8)
-    #특정 산업단지 검색결과가 존재하지 않을 시 , 지도에 전국 산업단지 시급성 분포도를 표시
+    #특정 산업단지 검색결과가 존재하지 않을 시 , 지도에 전국 산업단지 지원우선순위 분포도를 표시
     else:
         df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
         global current_page
@@ -1731,7 +1739,7 @@ def sandan_search(search, size_type, code_value, eu_select, button1, button2, bu
                                 opacity=0.4,
                                 )
                                 
-        text = '전국 기업 시급성 분포'
+        text = '전국 기업 분포'
 
     
     fig_sandan.update_layout(
