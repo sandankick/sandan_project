@@ -560,7 +560,7 @@ def Main_graph(input_df):
     x=y_money,
     y=x,
     marker=dict(
-        color='rgba(50, 171, 96, 0.6)',
+        color='#DBF6C6',
         line=dict(
             color='rgba(50, 171, 96, 1.0)',
             width=1),
@@ -695,9 +695,16 @@ def Main_map(input_df):
                             lat="latitude", lon="longitude",
                             zoom=zoom_size, center = {"lat": lat, "lon": lon},
                             color='산단등급',
+                            color_continuous_scale=[
+                                [0.0, colors_map[0]], 
+                                [0.25, colors_map[1]],
+                                [0.5, colors_map[2]],
+                                [0.75, colors_map[3]],
+                                [1, colors_map[4]]
+                            ],
                             size = 'marker_size',
                             size_max=50,
-                            opacity=0.3,
+                            opacity=0.55,
                             )
 
     fig_sandan.update_layout(
@@ -1709,6 +1716,13 @@ def sandan_search(search, size_type, code_value, eu_select, button1, button2, bu
                         geojson=geo_data_sandan,
                         locations='산업단지',
                         color='산단등급',
+                        color_continuous_scale=[
+                            [0.0, colors_map[0]], 
+                            [0.25, colors_map[1]],
+                            [0.5, colors_map[2]],
+                            [0.75, colors_map[3]],
+                            [1, colors_map[4]]
+                        ],
                         range_color = [1,5],
                         featureidkey='properties.name',
                         mapbox_style="carto-positron",
@@ -1736,7 +1750,7 @@ def sandan_search(search, size_type, code_value, eu_select, button1, button2, bu
                                 color='업체명',
                                 size = 'Score',
                                 size_max=25,
-                                opacity=0.4,
+                                opacity=0.7,
                                 )
                                 
         text = '전국 기업 분포'
