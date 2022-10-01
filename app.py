@@ -1562,6 +1562,210 @@ dash_app2.layout = html.Div(
 )
 
 
+global page1
+page1 = 0
+global currentpage_sum
+currentpage_sum = 1
+global cansee_currentpage
+cansee_currentpage = True
+global current_page
+current_page = 1
+@dash_app2.callback(
+    Output("company_grade1_text", "children"),
+    [Output("button1", "children"),
+    Output("button2", "children"),
+    Output("button3", "children"),
+    Output("button4", "children"),
+    Output("button5", "children"),
+    Output("button6", "children"),
+    Output("button7", "children"),
+    Output("button8", "children"),
+    Output("button9", "children"),
+    Output("button10", "children")],
+    Output("button1", "style"),
+    Output("button2", "style"),
+    Output("button3", "style"),
+    Output("button4", "style"),
+    Output("button5", "style"),
+    Output("button6", "style"),
+    Output("button7", "style"),
+    Output("button8", "style"),
+    Output("button9", "style"),
+    Output("button10", "style"),
+    Input("company_grade1_leftbutton", "n_clicks"),
+    Input("company_grade1_rightbutton", "n_clicks"),
+    Input("company_grade1_reset", "n_clicks"),
+    Input("company_grade1_forward", "n_clicks"),
+    Input("button1", "n_clicks"),
+    Input("button2", "n_clicks"),
+    Input("button3", "n_clicks"),
+    Input("button4", "n_clicks"),
+    Input("button5", "n_clicks"),
+    Input("button6", "n_clicks"),
+    Input("button7", "n_clicks"),
+    Input("button8", "n_clicks"),
+    Input("button9", "n_clicks"),
+    Input("button10", "n_clicks"),
+    Input('search', 'value'),
+    Input('well_status_selector', 'value'),
+    Input('well_statuses','value'),
+    Input('eu_check','value'),
+)
+
+
+def PageButtonClick(leftbutton, rightbutton, reset, forward, button1, button2, button3, button4, button5, button6, button7, button8, button9, button10, search, size_type, code_value, eu_select):
+    global currentpage_sum
+    global current_page
+    global cansee_currentpage
+    global page1
+
+    clickId = ctx.triggered_id
+
+    if (("company_grade1_leftbutton" != clickId) & ("company_grade1_rightbutton" != clickId) & ("button1" != clickId) & ("button2" != clickId) & ("button3" != clickId) & ("button4" != clickId) &
+            ("button5" != clickId) & ("button6" != clickId) & ("button7" != clickId) & ("button8" != clickId) &  ("button9" != clickId) &  ("button10" != clickId) &      
+            ("company_grade1_reset" != clickId) & ("company_grade1_forward" != clickId)):
+        current_page = 1
+        page1 = 0
+
+
+    df_condition = ExportEU_df(df, eu_select)
+    df_condition = CompanySize_df(df_condition, size_type)
+    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['기업등급'] == 5]
+
+    sandan_name, is_search = SandanSearch_df(df_condition, search)
+    df_condition = Sandan_df(df_condition, sandan_name)
+
+    df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
+   
+    company_len = len(df_company_grade)
+    page_num = math.ceil(company_len/10.0)
+
+    button_text = ['-','-','-','-','-','-','-','-','-','-']
+    
+    text = str(company_len)
+    
+    if "company_grade1_leftbutton" == ctx.triggered_id:
+        if page1 > 0 :
+            page1 = page1 - 10
+    if "company_grade1_rightbutton" == ctx.triggered_id:
+        if page1+10 < page_num:
+            page1 = page1 + 10
+    
+    if "company_grade1_reset" == ctx.triggered_id:
+        page1 = 0
+    if "company_grade1_forward" == ctx.triggered_id:
+        page1 = int((page_num-1)/10)*10
+
+    for i in range(page1, page_num):
+        if i > page1+9:
+            break
+        button_text[i-page1] = str(i+1)
+
+
+
+    buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor2 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor3 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor4 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor5 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor6 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor7 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor8 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor9 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    buttoncolor10 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+    
+    if "button1" == clickId:
+        current_page = 1
+        currentpage_sum = page1 + current_page
+        buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button2" == clickId:
+        current_page = 2
+        currentpage_sum = page1 + current_page
+        buttoncolor2 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button3" == clickId:
+        current_page = 3
+        currentpage_sum = page1 + current_page
+        buttoncolor3 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button4" == clickId:
+        current_page = 4
+        currentpage_sum = page1 + current_page
+        buttoncolor4 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button5" == clickId:
+        current_page = 5
+        currentpage_sum = page1 + current_page
+        buttoncolor5 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button6" == clickId:
+        current_page = 6
+        currentpage_sum = page1 + current_page
+        buttoncolor6 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button7" == clickId:
+        current_page = 7
+        currentpage_sum = page1 + current_page
+        buttoncolor7 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button8" == clickId:
+        current_page = 8
+        currentpage_sum = page1 + current_page
+        buttoncolor8 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button9" == clickId:
+        current_page = 9
+        currentpage_sum = page1 + current_page
+        buttoncolor9 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    elif "button10" == clickId:
+        current_page = 10
+        currentpage_sum = page1 + current_page
+        buttoncolor10 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+    else: 
+        #버튼을 클릭하지 않고 다른 선택메뉴를 골랐을 경우
+        if (("company_grade1_leftbutton" != clickId) & ("company_grade1_rightbutton" != clickId) &
+                ("company_grade1_reset" != clickId) & ("company_grade1_forward" != clickId)):
+            buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            currentpage_sum = 1
+    
+
+    if (("company_grade1_rightbutton" == clickId) | ("company_grade1_leftbutton" == clickId) | ("company_grade1_reset" == clickId) | ("company_grade1_forward" == clickId)):
+
+        cansee_currentpage = False
+        for i in range(page1+1, page1+11):
+            if (i == currentpage_sum):
+                cansee_currentpage = True
+
+        if cansee_currentpage:
+            if current_page == 1:
+                buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 2:
+                buttoncolor2 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 3:
+                buttoncolor3 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 4:
+                buttoncolor4 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 5:
+                buttoncolor5 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 6:
+                buttoncolor6 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 7:
+                buttoncolor7 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 8:
+                buttoncolor8 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 9:
+                buttoncolor9 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+            if current_page == 10:
+                buttoncolor10 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
+        else:
+            buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor2 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor3 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor4 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor5 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor6 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor7 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor8 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor9 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+            buttoncolor10 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
+
+    return text, button_text[0], button_text[1], button_text[2], button_text[3], button_text[4], button_text[5], button_text[6], button_text[7], button_text[8], button_text[9], buttoncolor1, buttoncolor2, buttoncolor3, buttoncolor4, buttoncolor5, buttoncolor6, buttoncolor7, buttoncolor8, buttoncolor9, buttoncolor10
+
+
 @dash_app2.callback(
     Output('pie_graph1', 'figure'),
     Input('search', 'value'),
@@ -1589,10 +1793,10 @@ def pie(search, size_type, code_value, eu_select):
         text = "___"
         return fig
     #기업 페이지 초기화 기능도 넣음
-    global current_page
-    global page1
-    current_page = 1
-    page1 = 0
+    # global page1
+    # global current_page
+    # current_page = 1
+    # page1 = 0
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
@@ -2088,201 +2292,6 @@ def ChangeInExport(search, size_type, code_value, eu_select, button1, button2, b
 #     return text, button_text[0], button_text[1], button_text[2], button_text[3], button_text[4], button_text[5], button_text[6], button_text[7], button_text[8], button_text[9]
 
 
-global page1
-page1 = 0
-global currentpage_sum
-currentpage_sum = 1
-global cansee_currentpage
-cansee_currentpage = True
-global current_page
-current_page = 1
-@dash_app2.callback(
-    Output("company_grade1_text", "children"),
-    [Output("button1", "children"),
-    Output("button2", "children"),
-    Output("button3", "children"),
-    Output("button4", "children"),
-    Output("button5", "children"),
-    Output("button6", "children"),
-    Output("button7", "children"),
-    Output("button8", "children"),
-    Output("button9", "children"),
-    Output("button10", "children")],
-    Output("button1", "style"),
-    Output("button2", "style"),
-    Output("button3", "style"),
-    Output("button4", "style"),
-    Output("button5", "style"),
-    Output("button6", "style"),
-    Output("button7", "style"),
-    Output("button8", "style"),
-    Output("button9", "style"),
-    Output("button10", "style"),
-    Input("company_grade1_leftbutton", "n_clicks"),
-    Input("company_grade1_rightbutton", "n_clicks"),
-    Input("company_grade1_reset", "n_clicks"),
-    Input("company_grade1_forward", "n_clicks"),
-    Input("button1", "n_clicks"),
-    Input("button2", "n_clicks"),
-    Input("button3", "n_clicks"),
-    Input("button4", "n_clicks"),
-    Input("button5", "n_clicks"),
-    Input("button6", "n_clicks"),
-    Input("button7", "n_clicks"),
-    Input("button8", "n_clicks"),
-    Input("button9", "n_clicks"),
-    Input("button10", "n_clicks"),
-    Input('search', 'value'),
-    Input('well_status_selector', 'value'),
-    Input('well_statuses','value'),
-    Input('eu_check','value'),
-)
-def PageButtonClick(leftbutton, rightbutton, reset, forward, button1, button2, button3, button4, button5, button6, button7, button8, button9, button10, search, size_type, code_value, eu_select):
-    global currentpage_sum
-    global current_page
-    global cansee_currentpage
-    global page1
-
-
-    df_condition = ExportEU_df(df, eu_select)
-    df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
-    df_condition = df_condition[df_condition['기업등급'] == 5]
-
-    sandan_name, is_search = SandanSearch_df(df_condition, search)
-    df_condition = Sandan_df(df_condition, sandan_name)
-
-    df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
-   
-    company_len = len(df_company_grade)
-    page_num = math.ceil(company_len/10.0)
-
-    button_text = ['-','-','-','-','-','-','-','-','-','-']
-    
-    text = str(company_len)
-    
-    global page1
-    if "company_grade1_leftbutton" == ctx.triggered_id:
-        if page1 > 0 :
-            page1 = page1 - 10
-    if "company_grade1_rightbutton" == ctx.triggered_id:
-        if page1+10 < page_num:
-            page1 = page1 + 10
-    
-    if "company_grade1_reset" == ctx.triggered_id:
-        page1 = 0
-    if "company_grade1_forward" == ctx.triggered_id:
-        page1 = int((page_num-1)/10)*10
-
-    for i in range(page1, page_num):
-        if i > page1+9:
-            break
-        button_text[i-page1] = str(i+1)
-
-
-
-    buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor2 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor3 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor4 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor5 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor6 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor7 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor8 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor9 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    buttoncolor10 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-    
-    clickId = ctx.triggered_id
-
-    if "button1" == clickId:
-        current_page = 1
-        currentpage_sum = page1 + current_page
-        buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button2" == clickId:
-        current_page = 2
-        currentpage_sum = page1 + current_page
-        buttoncolor2 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button3" == clickId:
-        current_page = 3
-        currentpage_sum = page1 + current_page
-        buttoncolor3 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button4" == clickId:
-        current_page = 4
-        currentpage_sum = page1 + current_page
-        buttoncolor4 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button5" == clickId:
-        current_page = 5
-        currentpage_sum = page1 + current_page
-        buttoncolor5 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button6" == clickId:
-        current_page = 6
-        currentpage_sum = page1 + current_page
-        buttoncolor6 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button7" == clickId:
-        current_page = 7
-        currentpage_sum = page1 + current_page
-        buttoncolor7 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button8" == clickId:
-        current_page = 8
-        currentpage_sum = page1 + current_page
-        buttoncolor8 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button9" == clickId:
-        current_page = 9
-        currentpage_sum = page1 + current_page
-        buttoncolor9 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    elif "button10" == clickId:
-        current_page = 10
-        currentpage_sum = page1 + current_page
-        buttoncolor10 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-    else: 
-        #버튼을 클릭하지 않고 다른 선택메뉴를 골랐을 경우
-        if (("company_grade1_leftbutton" != clickId) & ("company_grade1_rightbutton" != clickId) &
-                ("company_grade1_reset" != clickId) & ("company_grade1_forward" != clickId)):
-            buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            currentpage_sum = 1
-    
-
-    if (("company_grade1_rightbutton" == clickId) | ("company_grade1_leftbutton" == clickId) | ("company_grade1_reset" == clickId) | ("company_grade1_forward" == clickId)):
-
-        cansee_currentpage = False
-        for i in range(page1+1, page1+11):
-            if (i == currentpage_sum):
-                cansee_currentpage = True
-
-        if cansee_currentpage:
-            if current_page == 1:
-                buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 2:
-                buttoncolor2 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 3:
-                buttoncolor3 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 4:
-                buttoncolor4 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 5:
-                buttoncolor5 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 6:
-                buttoncolor6 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 7:
-                buttoncolor7 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 8:
-                buttoncolor8 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 9:
-                buttoncolor9 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-            if current_page == 10:
-                buttoncolor10 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':35, 'color':'#3ba706'}
-        else:
-            buttoncolor1 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor2 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor3 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor4 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor5 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor6 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor7 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor8 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor9 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-            buttoncolor10 = {'width': '75px', 'display':'inline_block', 'margin-right':10, 'border':0, 'font-size':24}
-
-    return text, button_text[0], button_text[1], button_text[2], button_text[3], button_text[4], button_text[5], button_text[6], button_text[7], button_text[8], button_text[9], buttoncolor1, buttoncolor2, buttoncolor3, buttoncolor4, buttoncolor5, buttoncolor6, buttoncolor7, buttoncolor8, buttoncolor9, buttoncolor10
 
 @dash_app2.callback(
     Output("well_statuses", "value"),
