@@ -16,6 +16,10 @@ import json
 import seaborn as sns
 
 import dash_bootstrap_components as dbc
+
+from io import StringIO
+from flask import Response
+
 #-----------------------------------------------------------------------------------------------------------------------
 #데이터 파일 가져오기
 #-----------------------------------------------------------------------------------------------------------------------
@@ -31,9 +35,6 @@ geo_data_sandan = json.load(open('산단.geojson', encoding='utf-8'))
 
 #등급에 따른 산업단지 색깔 지정
 colors_map = ['#fe6161', '#fe9d61', '#feeb61', '#cffe61', '#97fbf4', '#97d1fb', '#a4a5fe', '#dbdbdb']
-
-# 산업분류 리스트 만들기
-industry_list = df['대분류'].unique()
 
 #산업단지 geojson 파일에서 산업단지 위경도 좌표 가져오기
 sandan_names=[]
@@ -77,6 +78,139 @@ df['영업이익증가율_2020'] = df['영업이익_2020'] / df['영업이익_20
 df['영업이익증가율_2019'] = df['영업이익_2019'] / df['영업이익_2018'] -1
  
 df['평균영업이익증가율'] = (df['영업이익증가율_2021'] + df['영업이익증가율_2020'] + df['영업이익증가율_2019']) / 3
+
+#중분류 코드
+middlecode_dict = {1: '농업',
+ 2: '임업',
+ 3: '어업',
+ 5: '석탄, 원유 및 천연가스 광업',
+ 6: '금속 광업',
+ 7: '비금속광물 광업; 연료용 제외',
+ 8: '광업 지원 서비스업',
+ 10: '식료품 제조업',
+ 11: '음료 제조업',
+ 12: '담배 제조업',
+ 13: '섬유제품 제조업; 의복 제외',
+ 14: '의복, 의복 액세서리 및 모피제품 제조업',
+ 15: '가죽, 가방 및 신발 제조업',
+ 16: '목재 및 나무제품 제조업; 가구 제외',
+ 17: '펄프, 종이 및 종이제품 제조업',
+ 18: '인쇄 및 기록매체 복제업',
+ 19: '코크스, 연탄 및 석유정제품 제조업',
+ 20: '화학 물질 및 화학제품 제조업; 의약품 제외',
+ 21: '의료용 물질 및 의약품 제조업',
+ 22: '고무 및 플라스틱제품 제조업',
+ 23: '비금속 광물제품 제조업',
+ 24: '1차 금속 제조업',
+ 25: '금속 가공제품 제조업; 기계 및 가구 제외',
+ 26: '전자 부품, 컴퓨터, 영상, 음향 및 통신장비 제조업',
+ 27: '의료, 정밀, 광학 기기 및 시계 제조업',
+ 28: '전기장비 제조업',
+ 29: '기타 기계 및 장비 제조업',
+ 30: '자동차 및 트레일러 제조업',
+ 31: '기타 운송장비 제조업',
+ 32: '가구 제조업',
+ 33: '기타 제품 제조업',
+ 34: '산업용 기계 및 장비 수리업',
+ 35: '전기, 가스, 증기 및 공기 조절 공급업',
+ 36: '수도업',
+ 37: '하수, 폐수 및 분뇨 처리업',
+ 38: '폐기물 수집, 운반, 처리 및 원료 재생업',
+ 39: '환경 정화 및 복원업',
+ 41: '종합 건설업',
+ 42: '전문직별 공사업',
+ 45: '자동차 및 부품 판매업',
+ 46: '도매 및 상품 중개업',
+ 47: '소매업; 자동차 제외',
+ 49: '육상 운송 및 파이프라인 운송업',
+ 50: '수상 운송업',
+ 51: '항공 운송업',
+ 52: '창고 및 운송관련 서비스업',
+ 55: '숙박업',
+ 56: '음식점 및 주점업',
+ 58: '출판업',
+ 59: '영상ㆍ오디오 기록물 제작 및 배급업',
+ 60: '방송업',
+ 61: '우편 및 통신업',
+ 62: '컴퓨터 프로그래밍, 시스템 통합 및 관리업',
+ 63: '정보서비스업',
+ 64: '금융업',
+ 65: '보험 및 연금업',
+ 66: '금융 및 보험관련 서비스업',
+ 68: '부동산업',
+ 70: '연구개발업',
+ 71: '전문 서비스업',
+ 72: '건축 기술, 엔지니어링 및 기타 과학기술 서비스업',
+ 73: '기타 전문, 과학 및 기술 서비스업',
+ 74: '사업시설 관리 및 조경 서비스업',
+ 75: '사업 지원 서비스업',
+ 76: '임대업; 부동산 제외',
+ 84: '공공 행정, 국방 및 사회보장 행정',
+ 85: '교육 서비스업',
+ 86: '보건업',
+ 87: '사회복지 서비스업',
+ 90: '창작, 예술 및 여가관련 서비스업',
+ 91: '스포츠 및 오락관련 서비스업',
+ 94: '인적용역',
+ 95: '개인 및 소비용품 수리업',
+ 96: '기타 개인 서비스업',
+ 97: '가구 내 고용활동',
+ 98: '자가 소비를 위한 가구의 재화 및 서비스 생산활동',
+ 99: '국제 및 외국기관',
+ 93: '사업지원서비스업'}
+
+
+mtype_list = []
+for i in df['업종코드']:
+    if (i == i) and (i != "부"):
+        middle_code = int(str(i)[1:3])
+        if (middle_code == 10) or (middle_code == 11) or (middle_code == 12):
+            mtype = "음식료"
+        elif (middle_code == 13) or (middle_code == 14) or (middle_code == 15):
+            mtype = "섬유의복"
+        elif (middle_code == 16) or (middle_code == 17) or (middle_code == 18) or (middle_code == 19):
+            mtype = "목재종이"
+        elif (middle_code == 20) or (middle_code == 21) or (middle_code == 22):
+            mtype = "석유화학"
+        elif (middle_code == 23):
+            mtype = "비금속"
+        elif (middle_code == 24) :
+            mtype = "철강"
+        elif (middle_code == 25) or (middle_code == 29):
+            mtype = "기계"
+        elif (middle_code == 26) or (middle_code == 27) or (middle_code == 28):
+            mtype = "전기전자"
+        elif (middle_code == 30) or (middle_code == 31):
+            mtype = "운송장비"
+        elif (middle_code == 32) or (middle_code == 33) or (middle_code == 34):
+            mtype = "기타"
+        elif (middle_code == 58):
+            middle_code2 = int(str(i)[1:4])
+            if middle_code2 == 581:
+                mtype = "출판업"
+            else:
+                mtype = "정보통신"
+        elif (middle_code >= 59) and (middle_code <= 63):
+            mtype = "정보통신" 
+        else:
+            mtype = "기타비제조"  
+        mtype_list.append(mtype)
+    else:
+        mtype_list.append("정보없음")
+df['중분류'] = mtype_list
+
+# 산업분류 리스트 만들기
+industry_list = df['중분류'].unique()
+
+sandan_list = list(df['산업단지'].unique())
+sandan_list.insert(0, '전국산업단지')
+
+null_fig = dict({
+            "data": [{"type": "bar",
+                    "x": [],
+                    "y": []}],
+            "layout": {"title": {"text": "검색 결과가 존재하지 않습니다."}}
+        })
 #-----------------------------------------------------------------------------------------------------------------------
 #데이터 분류 함수
 #-----------------------------------------------------------------------------------------------------------------------
@@ -114,9 +248,7 @@ def SandanSearch_df(df, search):
     else:
         return_str = ""
     return return_str, is_search
-
-
-
+    
 def Sandan_df(df, sandan_name):
     '''
     Description :
@@ -141,7 +273,31 @@ def Sandan_df(df, sandan_name):
     df_return = df_condition
     return df_return
                    
-                   
+def Sandan_df2(df, sandan_name):
+    '''
+    Description :
+    데이터 프레임과 산업단지명 문자열을 input값으로 받아,
+    해당 산업단지에 속하는 데이터프레임 행을 반환
+    
+    Parameters :
+    df = 분류할 데이터프레임. '산업단지'칼럼을 포함
+    return :
+    산업단지 칼럼이 산업단지명 문자열과 일치하는 데이터프레임 행을 반환
+    '''
+    is_sandan = False
+    #데이터 결측치 제거
+    df_drop = df.dropna(subset=['산업단지'])
+    
+    #데이터 행 선택 조건식
+    if sandan_name != "전국산업단지":
+        is_sandan = True
+        df_condition = df_drop[(df_drop['산업단지']==sandan_name)]
+    else:
+        df_condition = df_drop
+        
+    
+    df_return = df_condition
+    return df_return, is_sandan
 
 def CompanySize_df(df, company_size):
     '''
@@ -216,17 +372,17 @@ def sales_pie(df):
     전국 산업단지별 수출액 비율 그래프 생성
     
     Parameters :
-    df = 분류할 데이터프레임. ['산업단지','대분류','매출액_2016','매출액_2017',
+    df = 분류할 데이터프레임. ['산업단지','중분류','매출액_2016','매출액_2017',
     '매출액_2018','매출액_2019','매출액_2020','매출액_2021']칼럼을 포함
     return :
     전국 산업단지별 수출액 비율을 나타낸 Plotly Express의 pie chart를 반환 
     '''
 
     #산업단지별 수출액(매출액)합 분류
-    df_temp=df[['산업단지','대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
-    df_temp=df_temp.groupby(['산업단지','대분류']).sum().reset_index()
+    df_temp=df[['산업단지','중분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
+    df_temp=df_temp.groupby(['산업단지','중분류']).sum().reset_index()
 
-    dff_pie=df_temp.drop(['대분류'],axis=1).groupby(['산업단지']).sum()
+    dff_pie=df_temp.drop(['중분류'],axis=1).groupby(['산업단지']).sum()
     dff_pie=dff_pie.sort_values(by=['매출액_2021'],ascending=False)[:8]
 
     title_text="전국"
@@ -270,16 +426,16 @@ def sales_pie_sandan(df_sandan):
     산업단지내 업종별 수출액 비율 그래프를 생성
     
     Parameters :
-    df = 분류할 데이터프레임. ['산업단지','대분류','매출액_2016','매출액_2017',
+    df = 분류할 데이터프레임. ['산업단지','중분류','매출액_2016','매출액_2017',
     '매출액_2018','매출액_2019','매출액_2020','매출액_2021']칼럼을 포함
     return :
     산업단지내 업종 별 수출액 비율을 나타낸 Plotly Express의 pie chart를 반환 
     '''
 
-    df_temp=df_sandan[['산업단지','대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
-    df_temp=df_temp.groupby(['산업단지','대분류']).sum().reset_index()
+    df_temp=df_sandan[['산업단지','중분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
+    df_temp=df_temp.groupby(['산업단지','중분류']).sum().reset_index()
 
-    dff_pie=df_sandan.drop(['산업단지'],axis=1).groupby(['대분류']).sum()
+    dff_pie=df_sandan.drop(['산업단지'],axis=1).groupby(['중분류']).sum()
     dff_pie=dff_pie.sort_values(by=['매출액_2021'],ascending=False)[:8]
 
     title_text=df_sandan['산업단지'].values[0]
@@ -736,14 +892,14 @@ def ChangeInExport_industry(df, sandan_name):
     특정 산업단지 내 수출액 변화 추이 그래프 생성
 
     Parameters :  
-    input_df = 분류할 데이터프레임. ['산업단지','대분류','매출액_2016','매출액_2017','매출액_2018',
+    input_df = 분류할 데이터프레임. ['산업단지','중분류','매출액_2016','매출액_2017','매출액_2018',
     '매출액_2019','매출액_2020','매출액_2021']칼럼을 포함 
     return : 
     graph_objects의 Figure()객체(수출액 변화 추이 그래프)
     '''
 
-    df_temp_sandan=df[['산업단지','대분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
-    df_temp_sandan=df_temp_sandan.groupby(['산업단지','대분류']).sum().reset_index()
+    df_temp_sandan=df[['산업단지','중분류','매출액_2016','매출액_2017','매출액_2018','매출액_2019','매출액_2020','매출액_2021']]
+    df_temp_sandan=df_temp_sandan.groupby(['산업단지','중분류']).sum().reset_index()
 
     #수출액(매출액)합을 기준으로 상위 5개 업종을 분류
     dff_bar = df_temp_sandan[df_temp_sandan['산업단지'] == sandan_name]
@@ -804,7 +960,7 @@ def ChangeInExport_sandan(df):
     산업단지 별 수출액 변화추이 그래프 생성
 
     Parameters :  
-    input_df = 분류할 데이터프레임. ['산업단지','대분류','매출액_2016','매출액_2017','매출액_2018',
+    input_df = 분류할 데이터프레임. ['산업단지','중분류','매출액_2016','매출액_2017','매출액_2018',
     '매출액_2019','매출액_2020','매출액_2021']칼럼을 포함 
     return : 
     graph_objects의 Figure()객체(수출액 변화 추이 그래프)
@@ -876,16 +1032,42 @@ application = flask.Flask(__name__)
 
 # dash app with flask server
 dash_app1 = Dash(__name__, server=application, url_base_pathname='/dashapp1/', 
-        meta_tags=[{"name": "viewport", "content": "width=device-width"}],
-        external_stylesheets=[dbc.themes.BOOTSTRAP])
+        meta_tags=[{"name": "viewport", "content": "width=device-width"}])
 dash_app2 = Dash(__name__, server=application, url_base_pathname='/dashapp2/',
-        meta_tags=[{"name": "viewport", "content": "width=device-width"}],
-        external_stylesheets=[dbc.themes.BOOTSTRAP])
+        meta_tags=[{"name": "viewport", "content": "width=device-width"}])
+
+# default values
+dash_app1.css.config.serve_locally = True
+dash_app1.scripts.config.serve_locally = True
+dash_app2.css.config.serve_locally = True
+dash_app2.scripts.config.serve_locally = True
+# dash_app1.config.assets_folder = 'assets'     # The path to the assets folder.
+# dash_app1.config.include_asset_files = True   # Include the files in the asset folder
+# dash_app1.config.assets_external_path = ""    # The external prefix if serve_locally == False
+# dash_app1.config.assets_url_path = '/assets'  # the local url prefix ie `/assets/*.js`
 
 # # flask app
 @application.route('/')
 def index():
     return flask.redirect(flask.url_for('/dashapp1/'))
+
+global rank_company_df
+rank_company_df = pd.DataFrame({'기업명':[], '시급도':[]})
+
+@application.route('/download_csv2')
+def download():
+    global rank_company_df
+    
+    output_stream = StringIO()## dataframe을 저장할 IO stream 
+    temp_df = rank_company_df 
+    temp_df.to_csv(output_stream) 
+    response = Response(
+        output_stream.getvalue(), 
+        mimetype='text/csv', 
+        content_type='application/octet-stream',
+    )
+    response.headers["Content-Disposition"] = "attachment; filename=post_export.csv"
+    return response 
 
 dash_app1.title = "ESG Danger Management Monitoring Service."
 dash_app2.title = "ESG Danger Management Monitoring Service. (page2)"
@@ -995,51 +1177,8 @@ sidebar1 = html.Div(
                                 ),
 
                                 dcc.Checklist(
-                                    options =[
-                                        {'label':' A. 농업, 임업 및 어업', 'value':'농업, 임업 및 어업'}, 
-                                        {'label':' B. 광업', 'value':'광업'}, 
-                                        {'label':' C. 제조업', 'value':'제조업'}, 
-                                        {'label':' D. 전기, 가스, 증기 및 공기 조절 공급원', 'value':'전기, 가스, 증기 및 공기 조절 공급원'}, 
-                                        {'label':' E. 수도, 하수 및 폐기물 처리, 원료 재생업', 'value':'수도, 하수 및 폐기물 처리, 원료 재생업'}, 
-                                        {'label':' F. 건설업', 'value':'건설업'}, 
-                                        {'label':' G. 도매 및 소매업', 'value':'도매 및 소매업'}, 
-                                        {'label':' H. 운수 및 창고업', 'value':'운수 및 창고업'}, 
-                                        {'label':' I. 숙박 및 음식점업', 'value':'숙박 및 음식점업'},
-                                        {'label':' J. 정보통신업', 'value':'정보통신업'},
-                                        {'label':' K. 금융 및 보험업', 'value':'금융 및 보험업'},
-                                        {'label':' L. 부동산업', 'value':'부동산업'},
-                                        {'label':' M. 전문, 과학 및 기술 서비스업', 'value':'전문, 과학 및 기술 서비스업'},
-                                        {'label':' N. 사업시설 관리, 사업 지원 및 임대 서비스업', 'value':'사업시설 관리, 사업 지원 및 임대 서비스업'},
-                                        {'label':' O. 공공 행정, 국방 및 사회보장 행정', 'value':'공공 행정, 국방 및 사회보장 행정'},
-                                        {'label':' P. 교육 서비스업', 'value':'교육 서비스업'},
-                                        {'label':' Q. 보건업 및 사회복지 서비스업', 'value':'보건업 및 사회복지 서비스업'},
-                                        {'label':' R. 예술, 스포츠 및 여가관련 서비스업', 'value':'예술, 스포츠 및 여가관련 서비스업'},
-                                        {'label':' S. 협회 및 단체, 수리 및 기타 개인 서비스업', 'value':'협회 및 단체, 수리 및 기타 개인 서비스업'},
-                                        {'label':' 그 외', 'value':None},        
-                                    ],
-
-                                    value = [
-                                        '농업, 임업 및 어업',
-                                        '광업',
-                                        '제조업',
-                                        '전기, 가스, 증기 및 공기 조절 공급원',
-                                        '수도, 하수 및 폐기물 처리, 원료 재생업',
-                                        '건설업',
-                                        '도매 및 소매업',
-                                        '운수 및 창고업',
-                                        '숙박 및 음식점업',
-                                        '정보통신업',
-                                        '금융 및 보험업',
-                                        '부동산업',
-                                        '전문, 과학 및 기술 서비스업',
-                                        '사업시설 관리, 사업 지원 및 임대 서비스업',
-                                        '공공 행정, 국방 및 사회보장 행정',
-                                        '교육 서비스업',
-                                        '보건업 및 사회복지 서비스업',
-                                        '예술, 스포츠 및 여가관련 서비스업',
-                                        '협회 및 단체, 수리 및 기타 개인 서비스업',
-                                        None
-                                    ],
+                                    options =industry_list,
+                                    value = industry_list,
                                     id="well_statuses",
                                     className="mini_container",
                                     style={"height":850, "overflow":"auto", 'background-color' : '#F5F5F5', 'font-size' : '23px'}
@@ -1212,7 +1351,8 @@ dash_app1.clientside_callback(
 )
 def select_all_none(all_selected, options):
     all_or_none = []
-    all_or_none = [option["value"] for option in options if all_selected]
+    if all_selected:
+        all_or_none = industry_list
     return all_or_none
 
 @dash_app1.callback(
@@ -1240,18 +1380,13 @@ def update_map(size_type, code_value, grade, eu_select):
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['중분류'].isin(code_value)]
 
     if code_value != []:
         fig, text = entire_EDA(df_condition, grade)
     else:
         text = "순위 산업단지는 -------- 입니다."
-        fig = dict({
-            "data": [{"type": "bar",
-                    "x": [],
-                    "y": []}],
-            "layout": {"title": {"text": "검색 결과가 존재하지 않습니다."}}
-        })
+        fig = null_fig
     return fig, text
     
 @dash_app1.callback(
@@ -1276,7 +1411,7 @@ def update_text(size_type, code_value, eu_select):
     '''
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['중분류'].isin(code_value)]
 
     data_money=int(df_condition['매출액_2021'].sum())
     data_people=df_condition['종사자수_2021'].sum()
@@ -1291,6 +1426,7 @@ def update_text(size_type, code_value, eu_select):
     [State("collapse_size", "is_open")],
 )
 def toggle_left(n, is_open):
+    text = "▼ 기업 규모별 구분 : \n"
     if n:
         if is_open == False:
             text = "▲ 기업 규모별 구분 : \n"
@@ -1306,6 +1442,7 @@ def toggle_left(n, is_open):
     [State("collapse_eu", "is_open")],
 )
 def toggle_left(n, is_open):
+    text = "▼ 수출여부 : \n"
     if n:
         if is_open == False:
             text = "▲ 수출여부 : \n"
@@ -1321,6 +1458,7 @@ def toggle_left(n, is_open):
     [State("collapse_code", "is_open")],
 )
 def toggle_left(n, is_open):
+    text = "▼ 업종 별 구분 : \n",
     if n:
         if is_open == False:
             text = "▲ 업종 별 구분 : \n"
@@ -1388,7 +1526,7 @@ def toggle_left(n, is_open):
 #                         )
 
 # fig_bar = go.Figure(data=[go.Table(header=dict(values=['기업명', '업종분류'], height=70),
-#             cells=dict(values=[df_company_loc.업종코드, df_company_loc.대분류], height=60))
+#             cells=dict(values=[df_company_loc.업종코드, df_company_loc.중분류], height=60))
 #                 ])
 
 
@@ -1443,14 +1581,40 @@ dash_app2.layout = html.Div(
                                         #산업단지 검색 input창
                                         html.Div(
                                             [
-                                                dcc.Input(id="search", type="text", placeholder="산업단지 검색", debounce=True, style = {
-                                                    'height': '45px', 'width' : '15%', 'display':'inline_block','float':'left', 'margin':'15px 10px 0px 100px'})
+                                                dcc.Dropdown(
+                                                    options = sandan_list, 
+                                                    value = '전국산업단지',
+                                                    id='search',
+                                                    clearable=False,  
+                                                    optionHeight=100, 
+                                                    maxHeight=500,
+                                                    style = {'height': 60, 'width' : 700,'float':'left', 'margin':'0px 10px 15px 80px', 'text-align':'center', 'overflow':'visible'}
+                                                )
+        
+                                                # dcc.Input(id="search", type="text", placeholder="산업단지 검색", debounce=True, style = {
+                                                #     'height': '45px', 'width' : '15%', 'display':'inline_block','float':'left', 'margin':'15px 10px 0px 100px'})
                                             ]
                                         ),
                                         #산업단지 분석결과 텍스트
                                         html.P(children = "검색된 지원우선 1순위 기업 갯수는 총 ", style = {'display':'inline_block','float':'left', 'margin':'7px 10px 0px 100px'}),
                                         html.P(children = "-", id = 'company_grade1_text', style = {'display':'inline_block','float':'left', 'margin':'7px 0px 0px 0px'}),
-                                        html.P(children = "개 입니다.", style = {'display':'inline_block','float':'left', 'margin':'7px 0px 0px 0px'})
+                                        html.P(children = "개 입니다.", style = {'display':'inline_block','float':'left', 'margin':'7px 0px 0px 0px'}),
+
+                                 
+                                            html.A(
+                                                [
+                                                    html.Img(
+                                                        src=dash_app1.get_asset_url("download_button.png"),
+                                                        style={
+                                                            "height": 80,
+                                                            "width": "auto",
+                                                            "margin-bottom": "10px",
+                                                        },
+                                                    )                                                
+                                                ],
+                                                href='/download_csv2',
+                                                style = {'display': 'block', 'float':'right'}
+                                            )
                                     ],
                                     className="pretty_container",
                                     id = "input_sandan_container",
@@ -1570,6 +1734,10 @@ global cansee_currentpage
 cansee_currentpage = True
 global current_page
 current_page = 1
+
+global company_count
+company_count = -1
+
 @dash_app2.callback(
     Output("company_grade1_text", "children"),
     [Output("button1", "children"),
@@ -1613,11 +1781,16 @@ current_page = 1
 )
 
 
+
+
+
+
 def PageButtonClick(leftbutton, rightbutton, reset, forward, button1, button2, button3, button4, button5, button6, button7, button8, button9, button10, search, size_type, code_value, eu_select):
     global currentpage_sum
     global current_page
     global cansee_currentpage
     global page1
+    global company_count
 
     clickId = ctx.triggered_id
 
@@ -1630,21 +1803,28 @@ def PageButtonClick(leftbutton, rightbutton, reset, forward, button1, button2, b
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['중분류'].isin(code_value)]
     df_condition = df_condition[df_condition['기업등급'] == 5]
 
-    sandan_name, is_search = SandanSearch_df(df_condition, search)
-    df_condition = Sandan_df(df_condition, sandan_name)
+    # sandan_name, is_search = SandanSearch_df(df_condition, search)
+    # df_condition = Sandan_df(df_condition, sandan_name)
 
+    sandan_name = search
+    df_condition, is_search = Sandan_df2(df_condition, search)
+ 
     df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
    
     company_len = len(df_company_grade)
+    company_count = company_len
+
     page_num = math.ceil(company_len/10.0)
 
     button_text = ['-','-','-','-','-','-','-','-','-','-']
     
     text = str(company_len)
+
     
+
     if "company_grade1_leftbutton" == ctx.triggered_id:
         if page1 > 0 :
             page1 = page1 - 10
@@ -1773,6 +1953,7 @@ def PageButtonClick(leftbutton, rightbutton, reset, forward, button1, button2, b
     Input('well_statuses','value'),
     Input('eu_check','value'))
 def pie(search, size_type, code_value, eu_select):
+    global company_count
     '''
     Description :
     산업단지별 수출액 비율 그래프 콜백함수
@@ -1784,12 +1965,7 @@ def pie(search, size_type, code_value, eu_select):
     Plotly Express의 pie chart를 반환
     '''
     if code_value == []:
-        fig = dict({
-            "data": [{"type": "bar",
-                    "x": [],
-                    "y": []}],
-            "layout": {"title": {"text": "검색 결과가 존재하지 않습니다."}}
-        })
+        fig = null_fig
         text = "___"
         return fig
     #기업 페이지 초기화 기능도 넣음
@@ -1800,11 +1976,17 @@ def pie(search, size_type, code_value, eu_select):
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['중분류'].isin(code_value)]
 
-    sandan_name, is_search = SandanSearch_df(df_condition, search)
-    df_condition = Sandan_df(df_condition, sandan_name)
+    # sandan_name, is_search = SandanSearch_df(df_condition, search)
+    # df_condition = Sandan_df(df_condition, sandan_name)
+    sandan_name = search
+    df_condition, is_search = Sandan_df2(df_condition, search)
     
+
+    if company_count == 0:
+        return null_fig
+        
     if is_search:
         return sales_pie_sandan(df_condition)
     else:
@@ -1818,6 +2000,7 @@ def pie(search, size_type, code_value, eu_select):
     Input('well_statuses','value'),
     Input('eu_check','value'))
 def ChangeInExport(search, size_type, code_value, eu_select):
+    global company_count
     '''
     Description :
     산업단지 별 수출액 변화추이 그래프 콜백함수
@@ -1830,22 +2013,21 @@ def ChangeInExport(search, size_type, code_value, eu_select):
     산업단지 업종별 분석결과 텍스트를 반환
     '''
     if code_value == []:
-        fig = dict({
-            "data": [{"type": "bar",
-                    "x": [],
-                    "y": []}],
-            "layout": {"title": {"text": "검색 결과가 존재하지 않습니다."}}
-        })
+        fig = null_fig
         text = "___"
         return fig, text
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['중분류'].isin(code_value)]
 
-    sandan_name, is_search = SandanSearch_df(df_condition, search)
-    df_condition = Sandan_df(df_condition, sandan_name)
+    # sandan_name, is_search = SandanSearch_df(df_condition, search)
+    # df_condition = Sandan_df(df_condition, sandan_name)
+    sandan_name = search
+    df_condition, is_search = Sandan_df2(df_condition, search)
     
+    if company_count == 0:
+        return null_fig
     if is_search:
         fig_temp, text_upjong= ChangeInExport_industry(df_condition, sandan_name)
         text = text_upjong
@@ -1888,12 +2070,7 @@ def sandan_search(search, size_type, code_value, eu_select, button1, button2, bu
     특정 산업단지 검색결과가 존재할 시 Plotly Express의 choropleth_mapbox(특정 산업단지 확대 맵)을 반환
     '''
     if code_value == []:
-        fig = dict({
-            "data": [{"type": "bar",
-                    "x": [],
-                    "y": []}],
-            "layout": {"title": {"text": "검색 결과가 존재하지 않습니다."}}
-        })
+        fig = null_fig
         return fig
 
     lat = 36.065
@@ -1902,36 +2079,73 @@ def sandan_search(search, size_type, code_value, eu_select, button1, button2, bu
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['중분류'].isin(code_value)]
 
-    sandan_name, is_search = SandanSearch_df(df_condition, search)
-    df_sandan = Sandan_df(df_condition, sandan_name)
-
+    # sandan_name, is_search = SandanSearch_df(df_condition, search)
+    # df_condition = Sandan_df(df_condition, sandan_name)
+    sandan_name = search
+    df_condition, is_search = Sandan_df2(df_condition, search)
 
     #특정 산업단지 검색결과가 존재할 시, 특정 산업단지를 크게 지도에 표시  
     if is_search:
         text = sandan_name + ' 지도'
-        sandan_location = df_sandan_location[df_sandan_location['name'] == sandan_name]
-        zoom_size = 11.5
-        lat = float(sandan_location['latitude'].values[0])
-        lon = float(sandan_location['longitude'].values[0])
         
-        fig_sandan = px.choropleth_mapbox(df_sandan_loc, 
-                        geojson=geo_data_sandan,
-                        locations='산업단지',
-                        color='산단등급',
-                        color_continuous_scale=[
-                            [0.0, colors_map[0]], 
-                            [0.25, colors_map[1]],
-                            [0.5, colors_map[2]],
-                            [0.75, colors_map[3]],
-                            [1, colors_map[4]]
-                        ],
-                        range_color = [1,5],
-                        featureidkey='properties.name',
-                        mapbox_style="carto-positron",
-                        zoom=zoom_size, center = {"lat": lat, "lon": lon},
-                        opacity=0.8)
+        if sandan_name in sandan_names:
+            sandan_location = df_sandan_location[df_sandan_location['name'] == sandan_name]
+            zoom_size = 11.5
+            lat = float(sandan_location['latitude'].values[0])
+            lon = float(sandan_location['longitude'].values[0])
+        
+            fig_sandan = px.choropleth_mapbox(df_sandan_loc, 
+                            geojson=geo_data_sandan,
+                            locations='산업단지',
+                            color='산단등급',
+                            color_continuous_scale=[
+                                [0.0, colors_map[0]], 
+                                [0.25, colors_map[1]],
+                                [0.5, colors_map[2]],
+                                [0.75, colors_map[3]],
+                                [1, colors_map[4]]
+                            ],
+                            range_color = [1,5],
+                            featureidkey='properties.name',
+                            mapbox_style="carto-positron",
+                            zoom=zoom_size, center = {"lat": lat, "lon": lon},
+                            opacity=0.8)
+            fig_sandan.update_layout(
+                title=dict(
+                    text=text,
+                    x=0.02,
+                    y=0.98,
+                    font_size=40),
+                font=dict(
+                    family="Arial",
+                    size=30,
+                    color="#777777"
+                ),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=0.975,
+                    xanchor="right",
+                    x=1,
+                    bgcolor='rgba(0,0,0,0.02)',
+                    font=dict(
+                    family="Courier",
+                    size=20
+                    ),
+                ),
+                margin={"r":0,"t":150,"l":0,"b":0},
+                paper_bgcolor='#F9F9F9',
+                plot_bgcolor='#F9F9F9',
+            )
+        else:
+            fig_sandan = dict({
+                    "data": [{"type": "bar",
+                            "x": [],
+                            "y": []}],
+                    "layout": {"title": {"text": "산업단지 지도데이터가 존재하지 않습니다."}}
+                })
     #특정 산업단지 검색결과가 존재하지 않을 시 , 지도에 전국 산업단지 지원우선순위 분포도를 표시
     else:
         df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
@@ -1960,33 +2174,33 @@ def sandan_search(search, size_type, code_value, eu_select, button1, button2, bu
         text = '전국 기업 분포'
 
     
-    fig_sandan.update_layout(
-                            title=dict(
-                                text=text,
-                                x=0.02,
-                                y=0.98,
-                                font_size=40),
-                            font=dict(
-                                family="Arial",
-                                size=30,
-                                color="#777777"
-                            ),
-                            legend=dict(
-                                orientation="h",
-                                yanchor="bottom",
-                                y=0.975,
-                                xanchor="right",
-                                x=1,
-                                bgcolor='rgba(0,0,0,0.02)',
+        fig_sandan.update_layout(
+                                title=dict(
+                                    text=text,
+                                    x=0.02,
+                                    y=0.98,
+                                    font_size=40),
                                 font=dict(
-                                family="Courier",
-                                size=20
+                                    family="Arial",
+                                    size=30,
+                                    color="#777777"
                                 ),
-                            ),
-                            margin={"r":0,"t":150,"l":0,"b":0},
-                            paper_bgcolor='#F9F9F9',
-                            plot_bgcolor='#F9F9F9',
-                            )
+                                legend=dict(
+                                    orientation="h",
+                                    yanchor="bottom",
+                                    y=0.975,
+                                    xanchor="right",
+                                    x=1,
+                                    bgcolor='rgba(0,0,0,0.02)',
+                                    font=dict(
+                                    family="Courier",
+                                    size=20
+                                    ),
+                                ),
+                                margin={"r":0,"t":150,"l":0,"b":0},
+                                paper_bgcolor='#F9F9F9',
+                                plot_bgcolor='#F9F9F9',
+                                )
 
     return fig_sandan
 
@@ -2019,20 +2233,17 @@ def pie(search, size_type, code_value, eu_select, button1, button2, button3, but
     Plotly Express의 pie chart를 반환
     '''
     if code_value == []:
-        fig = dict({
-            "data": [{"type": "bar",
-                    "x": [],
-                    "y": []}],
-            "layout": {"title": {"text": "검색 결과가 존재하지 않습니다."}}
-        })
+        fig = null_fig
         return fig
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['중분류'].isin(code_value)]
 
-    sandan_name, is_search = SandanSearch_df(df_condition, search)
-    df_condition = Sandan_df(df_condition, sandan_name)
+    # sandan_name, is_search = SandanSearch_df(df_condition, search)
+    # df_condition = Sandan_df(df_condition, sandan_name)
+    sandan_name = search
+    df_condition, is_search = Sandan_df2(df_condition, search)
 
     if is_search:
         df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
@@ -2144,36 +2355,36 @@ def ChangeInExport(search, size_type, code_value, eu_select, button1, button2, b
     '''
     global current_page
     global page1
+    global rank_company_df
 
     if code_value == []:
-        fig = dict({
-            "data": [{"type": "bar",
-                    "x": [],
-                    "y": []}],
-            "layout": {"title": {"text": "검색 결과가 존재하지 않습니다."}}
-        })
+        fig = null_fig
         return fig
 
     df_condition = ExportEU_df(df, eu_select)
     df_condition = CompanySize_df(df_condition, size_type)
-    df_condition = df_condition[df_condition['대분류'].isin(code_value)]
+    df_condition = df_condition[df_condition['중분류'].isin(code_value)]
 
-    sandan_name, is_search = SandanSearch_df(df_condition, search)
-    df_condition = Sandan_df(df_condition, sandan_name)
-
+    # sandan_name, is_search = SandanSearch_df(df_condition, search)
+    # df_condition = Sandan_df(df_condition, sandan_name)
+    sandan_name = search
+    df_condition, is_search = Sandan_df2(df_condition, search)
+    
     if is_search:
         df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
 
         df_company_grade = df_company_grade[df_company_grade['기업등급'] == 5]
+        rank_company_df = df_company_grade
         df_company_grade = df_company_grade.iloc[(page1+current_page-1)*10:(page1+current_page)*10]
         # df_company_grade = df_company_grade.head(100)
         # df_company_grade = df_company_grade.sort_values(by=['매출액_2021'], axis=0, ascending=False)
         # df_company_grade = df_company_grade.head(10)
-
+        
+        
         df_company_loc = pd.merge(df_company_grade, df_sandan_location, how='left', left_on='산업단지', right_on='name')
 
         fig = go.Figure(data=[go.Table(header=dict(values=['기업명', '업종분류'], height=70),
-                 cells=dict(values=[df_company_loc.업체명, df_company_loc.대분류], height=60))
+                 cells=dict(values=[df_company_loc.업체명, df_company_loc.중분류], height=60))
                      ])
 
 
@@ -2200,15 +2411,17 @@ def ChangeInExport(search, size_type, code_value, eu_select, button1, button2, b
         df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
 
         df_company_grade = df_company_grade[df_company_grade['기업등급'] == 5]
+        rank_company_df = df_company_grade
         df_company_grade = df_company_grade.iloc[(page1+current_page-1)*10:(page1+current_page)*10]
         # df_company_grade = df_company_grade.head(100)
         # df_company_grade = df_company_grade.sort_values(by=['매출액_2021'], axis=0, ascending=False)
         # df_company_grade = df_company_grade.head(10)
+        
 
         df_company_loc = pd.merge(df_company_grade, df_sandan_location, how='left', left_on='산업단지', right_on='name')
 
         fig = go.Figure(data=[go.Table(header=dict(values=['기업명', '업종분류'], height=70),
-                 cells=dict(values=[df_company_loc.업체명, df_company_loc.대분류], height=60))
+                 cells=dict(values=[df_company_loc.업체명, df_company_loc.중분류], height=60))
                      ])
 
 
@@ -2232,66 +2445,6 @@ def ChangeInExport(search, size_type, code_value, eu_select, button1, button2, b
 
 
 
-# @dash_app2.callback(
-#     Output("company_grade1_text", "children"),
-#     [Output("button1", "children"),
-#     Output("button2", "children"),
-#     Output("button3", "children"),
-#     Output("button4", "children"),
-#     Output("button5", "children"),
-#     Output("button6", "children"),
-#     Output("button7", "children"),
-#     Output("button8", "children"),
-#     Output("button9", "children"),
-#     Output("button10", "children")],
-#     Input("company_grade1_leftbutton", "n_clicks"),
-#     Input("company_grade1_rightbutton", "n_clicks"),
-#     Input("company_grade1_reset", "n_clicks"),
-#     Input("company_grade1_forward", "n_clicks"),
-#     Input('search', 'value'),
-#     Input('well_status_selector', 'value'),
-#     Input('well_statuses','value'),
-#     Input('eu_check','value'),
-# )
-# def CompanyGrade1Button(leftbutton, rightbutton, reset, forward, search, size_type, code_value, eu_select):
-#     df_condition = ExportEU_df(df, eu_select)
-#     df_condition = CompanySize_df(df_condition, size_type)
-#     df_condition = df_condition[df_condition['대분류'].isin(code_value)]
-#     df_condition = df_condition[df_condition['기업등급'] == 5]
-
-#     sandan_name, is_search = SandanSearch_df(df_condition, search)
-#     df_condition = Sandan_df(df_condition, sandan_name)
-
-#     df_company_grade = df_condition.sort_values(by=['Score'], axis=0, ascending=False)
-   
-#     company_len = len(df_company_grade)
-#     page_num = math.ceil(company_len/10.0)
-
-#     button_text = ['-','-','-','-','-','-','-','-','-','-']
-    
-#     text = str(company_len)
-    
-#     global page1
-#     if "company_grade1_leftbutton" == ctx.triggered_id:
-#         if page1 > 0 :
-#             page1 = page1 - 10
-#     if "company_grade1_rightbutton" == ctx.triggered_id:
-#         if page1+10 < page_num:
-#             page1 = page1 + 10
-    
-#     if "company_grade1_reset" == ctx.triggered_id:
-#         page1 = 0
-#     if "company_grade1_forward" == ctx.triggered_id:
-#         page1 = int((page_num-1)/10)*10
-
-#     for i in range(page1, page_num):
-#         if i > page1+9:
-#             break
-#         button_text[i-page1] = str(i+1)
-
-#     return text, button_text[0], button_text[1], button_text[2], button_text[3], button_text[4], button_text[5], button_text[6], button_text[7], button_text[8], button_text[9]
-
-
 
 @dash_app2.callback(
     Output("well_statuses", "value"),
@@ -2300,7 +2453,8 @@ def ChangeInExport(search, size_type, code_value, eu_select, button1, button2, b
 )
 def select_all_none(all_selected, options):
     all_or_none = []
-    all_or_none = [option["value"] for option in options if all_selected]
+    if all_selected:
+        all_or_none = industry_list
     return all_or_none
     
 
@@ -2311,6 +2465,7 @@ def select_all_none(all_selected, options):
     [State("collapse_size", "is_open")],
 )
 def toggle_left(n, is_open):
+    text = "▼ 기업 규모별 구분 : \n"
     if n:
         if is_open == False:
             text = "▲ 기업 규모별 구분 : \n"
@@ -2326,6 +2481,7 @@ def toggle_left(n, is_open):
     [State("collapse_eu", "is_open")],
 )
 def toggle_left(n, is_open):
+    text = "▼ 수출여부 : \n"
     if n:
         if is_open == False:
             text = "▲ 수출여부 : \n"
@@ -2341,6 +2497,7 @@ def toggle_left(n, is_open):
     [State("collapse_code", "is_open")],
 )
 def toggle_left(n, is_open):
+    text = "▼ 업종 별 구분 : \n"
     if n:
         if is_open == False:
             text = "▲ 업종 별 구분 : \n"
